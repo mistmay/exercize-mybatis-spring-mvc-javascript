@@ -1,0 +1,27 @@
+aside {
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 3;
+	display: none;
+}
+
+header {
+	height: 80px;
+}
+
+main {
+	min-height: calc(100vh - 80px);
+}
+
+form {
+	display: none;
+	overflow-x: hidden;
+    overflow-y: auto;
+}
+
+#no-book-form {
+	display: none;
+}
+
+#loading {
+	display: none;
+}

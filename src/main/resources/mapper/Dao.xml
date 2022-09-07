@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.advancia.bookBatis.dao.Dao">
+	<resultMap type="com.advancia.bookBatis.model.Author"
+		id="AuthorResult">
+		<result property="id" column="id_author" />
+		<result property="name" column="name" />
+		<result property="surname" column="surname" />
+		<collection property='books'
+			ofType='com.advancia.bookBatis.model.Book' resultMap='BookResult'
+			columnPrefix='book_'></collection>
+	</resultMap>
+
+	<resultMap type="com.advancia.bookBatis.model.Genre"
+		id="GenreResult">
+		<result property="id" column="id_genre" />
+		<result property="name" column="name" />
+		<collection property='books'
+			ofType='com.advancia.bookBatis.model.Book' resultMap='BookResult'
+			columnPrefix='book_'></collection>
+	</resultMap>
+
+	<resultMap type="com.advancia.bookBatis.model.Book"
+		id="BookResult">
+		<result property="id" column="id_book" />
+		<result property="title" column="title" />
+		<association property='author' resultMap='AuthorResult' />
+		<collection property='genres'
+			ofType='com.advancia.bookBatis.model.Genre' resultMap='GenreResult'
+			columnPrefix='genre_'></collection>
+	</resultMap>
+
+	<select id="findAllAuthors" resultMap="AuthorResult">
+		select id_author, name,
+		surname
+		from author
+		order by id_author
+	</select>
+
+	<select id="findAllGenres" resultMap="GenreResult">
+		select id_genre, name
+		from
+		genre
+		order by id_genre
+	</select>
+
+	<select id="findAllBooks" resultMap="BookResult">
+		select b.id_book, b.title,
+		a.id_author, a.name, a.surname,
+		g.id_genre as genre_id_genre, g.name as
+		genre_name
+		from book b, author
+		a, genre g, book_genre bg
+		where
+		b.id_author = a.id_author
+		and b.id_book
+		= bg.id_book
+		and g.id_genre =
+		bg.id_genre
+		order by b.id_book
+	</select>
+
+	<select id="selectAuthorById" resultMap="AuthorResult">
+		select id_author, name,
+		surname
+		from author
+		where id_author = #{id}
+	</select>
+
+	<select id="selectGenreById" resultMap="GenreResult">
+		select id_genre, name
+		from
+		genre
+		where id_genre = #{id}
+	</select>
+
+	<select id="selectBookById" resultMap="BookResult">
+		select b.id_book, b.title,
+		a.id_author, a.name, a.surname,
+		g.id_genre as genre_id_genre, g.name as
+		genre_name
+		from book b, author
+		a, genre g, book_genre bg
+		where
+		b.id_author = a.id_author
+		and b.id_book
+		= bg.id_book
+		and g.id_genre =
+		bg.id_genre
+		and b.id_book = #{id}
+	</select>
+
+	<insert id="insertAuthor"
+		parameterType="com.advancia.bookBatis.model.Author">
+		insert into author (id_author, name, surname)
+		values(AUTHOR_SEQ.nextval, #{name}, #{surname})
+	</insert>
+
+	<insert id="insertGenre"
+		parameterType="com.advancia.bookBatis.model.Genre">
+		insert into genre (id_genre, name)
+		values(GENRE_SEQ.nextval, #{name})
+	</insert>
+
+	<insert id="insertBook"
+		parameterType="com.advancia.bookBatis.model.Book">
+		{call
+		declare
+		new_id NUMBER;
+		begin
+		new_id := BOOK_SEQ.nextval;
+		insert into book (id_book, id_author, title) values(new_id, #{author.id},
+		#{title});
+		<foreach collection="genres" item="genre">
+			insert into book_genre (id_book, id_genre) values(new_id, #{genre.id});
+		</foreach>
+		end
+		}
+	</insert>
+
+	<update id="updAuthor"
+		parameterType="com.advancia.bookBatis.model.Author">
+		update author
+		set
+		name=#{name},
+		surname=#{surname}
+		where
+		id_author=#{id}
+	</update>
+
+	<update id="updGenre"
+		parameterType="com.advancia.bookBatis.model.Genre">
+		update genre
+		set
+		name=#{name}
+		where id_genre=#{id}
+	</update>
+
+	<update id="updBook"
+		parameterType="com.advancia.bookBatis.model.Book">
+		{call
+		declare
+		begin
+		update book set title=#{title}, id_author=#{author.id} where id_book=#{id};
+		delete from book_genre where id_book=#{id};
+		<foreach collection="genres" item="genre">
+			insert into book_genre (id_book, id_genre) values(#{id}, #{genre.id});
+		</foreach>
+		end
+		}
+	</update>
+	
+	<delete id="delAuthor" parameterType="int">
+        delete from author where id_author=#{id}
+    </delete>
+    
+    <delete id="delGenre" parameterType="int">
+        delete from genre where id_genre=#{id}
+    </delete>
+    
+    <delete id="delBook" parameterType="int">
+        {call
+		declare
+		begin
+		delete from book_genre where id_book=#{id};
+		delete from book where id_book=#{id}; 
+		end
+		}
+    </delete>
+
+</mapper>
