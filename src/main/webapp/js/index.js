@@ -109,11 +109,13 @@ async function initBookForm(type, book) {
 			genres.forEach(element => {
 				const checkbox = document.createElement('input');
 				checkbox.setAttribute('type', 'checkbox');
-				checkbox.required = true;
 				checkbox.id = element.id;
 				checkbox.value = element.id;
 				if (type === 'update' && book && book.genres.find(item => item.id == checkbox.value)) {
 					checkbox.setAttribute('checked', 'checked');
+				}
+				if (type !== 'update') {
+					checkbox.required = true;
 				}
 				checkbox.setAttribute('name', 'genres');
 				checkbox.setAttribute('class', 'checkboxes');
